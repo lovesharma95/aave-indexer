@@ -1,8 +1,6 @@
 import { ethers } from "ethers";
-import { configuration as config } from "./config";
-import { eventFilters } from "./helpers/eventFilters";
-import { eventHandler } from "./helpers/eventHandler";
-import { getMissedMultiSendTransaction } from "./missedEvents/getMissedMutiSend";
+import { configuration as config } from "../config";
+import LendingPoolService from "../services/lendingPoolService";
 const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
 
 const expectedPongBackDuration = config.get(
@@ -12,6 +10,7 @@ const expectedPongBackDuration = config.get(
 const keepAliveCheckInterval = config.get("keepAliveCheckInterval") as number;
 
 async function getMissedEvents(
+  lendingPoolService: LendingPoolService,
   chain: string,
   block: number,
   aUsdcAddress: string,
@@ -20,7 +19,7 @@ async function getMissedEvents(
 ) {
   try {
     console.log(`MISSED EVENT CALLED FOR ${chain}`);
-    await getMissedMultiSendTransaction(
+    await lendingPoolService.getMissedMultiSendTransaction(
       chain,
       block,
       aUsdcAddress,
@@ -40,13 +39,16 @@ async function contractEventListener(
   webSocketUrl: string
 ) {
   try {
+    const lendingPoolService = new LendingPoolService();
     let provider = new ethers.providers.WebSocketProvider(webSocketUrl);
     let totalWebsocketDisconnects = 0;
     let pingTimeout: NodeJS.Timeout;
     let keepAliveInterval: NodeJS.Timeout;
 
     provider._websocket.on("open", async () => {
+      // get missed events
       getMissedEvents(
+        lendingPoolService,
         chain,
         block,
         aUsdcAddress,
@@ -65,9 +67,14 @@ async function contractEventListener(
 
       // Listen to contract events here.
       console.log(`Listening to ${chain} contract events...`);
-      const eventFilter = eventFilters(lendingPoolAddress);
+      const eventFilter = lendingPoolService.eventFilters(lendingPoolAddress);
       provider.on(eventFilter.lendingPool, (event) => {
-        eventHandler(event, aUsdcAddress, lendingPoolAddress, webSocketUrl);
+        lendingPoolService.eventHandler(
+          event,
+          aUsdcAddress,
+          lendingPoolAddress,
+          webSocketUrl
+        );
       });
     });
 
@@ -104,7 +111,7 @@ async function contractEventListener(
 async function checkAPIServiceIsLive() {
   await contractEventListener(
     "AAVE",
-    21242960,
+    21249632,
     config.get("aUsdcAddress") as string,
     config.get("lendingPoolAddress") as string,
     config.get("websocketRpcUrl") as string

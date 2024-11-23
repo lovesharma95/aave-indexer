@@ -1,6 +1,16 @@
 # aave-indexer
 
 An Indexer for aUSDC Aave Contract to Monitor Liquidation Parameters
+Listens to previous missed events and new live events
+**Events**
+
+```
+Deposit
+Borrow
+Repay
+Withdraw
+LiquidationCall
+```
 
 ## Prerequisites
 
@@ -84,9 +94,43 @@ src\
  |--controllers\    	# Route controllers (controller layer)
  |--assets\         	# ABI files
  |--db\             	# Migrations, data source and entity files
- |--services\       	# DB Logic
- |--helper\         	# Helper classes and functions
- |--missedEvents\       # missed and past events
- |--eventListener.ts	# websocket connection
+ |--services\       	# Business logic
+ |--repository\       	# DB layer
+ |--errors\         	# Error Classes
+ |--eventListener\      # websocket connection files
  |--index.ts        	# App entry point
+```
+
+## API Documentation
+
+Get Account Information
+
+```
+GET http://localhost:3000/account?page=1&limit=10
+```
+
+Response Example:
+
+```
+{
+  "data": [
+    {
+      "id": 1,
+      "created_at": "2024-11-22T21:43:23.225Z",
+      "updated_at": "2024-11-23T10:29:31.812Z",
+      "created_by": "SYSTEM",
+      "updated_by": "SYSTEM",
+      "is_active": true,
+      "is_deleted": false,
+      "wallet_address": "0x06cF19e0c17FC400B20F59c3C405AB0e5f73e7ff",
+      "health_factor": "1.546990754114435715",
+      "total_collateral_eth": "144.210489455449614754",
+      "total_debt_eth": "79.917512293684682929",
+      "ltv": "0.000000000000008181"
+    },
+  ],
+  "page": "1",
+  "limit": "1",
+  "total": 37
+}
 ```

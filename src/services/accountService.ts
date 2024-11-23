@@ -1,44 +1,39 @@
-import { AppDataSource } from "../db/dataSource";
-import { Accounts } from "../db/entity/Accounts";
-class AccoutService {
-  public async create(accountData: any) {
-    try {
-      const account = new Accounts();
-      account.health_factor = accountData.healthFactor;
-      account.wallet_address = accountData.userAddress;
-      account.total_collateral_eth = accountData.totalCollateralETH;
-      account.total_debt_eth = accountData.totalDebtETH;
-      account.ltv = accountData.ltv;
+import AccoutRepo from "../repository/accountRepo";
+import { BadRequestError } from "../errors/BadRequestError";
 
-      return AppDataSource.manager.save(account);
-    } catch (err) {
-      console.log("error creating account in create() in AccoutService: ", err);
-    }
+class AccountService {
+  private accountRepo: AccoutRepo;
+
+  constructor() {
+    this.accountRepo = new AccoutRepo();
   }
 
-  public async update(accountData: any, account: Accounts) {
+  async getAccounts(page: any, limit: any) {
     try {
-      account.health_factor = accountData.healthFactor;
-      account.wallet_address = accountData.userAddress;
-      account.total_collateral_eth = accountData.totalCollateralETH;
-      account.total_debt_eth = accountData.totalDebtETH;
-      account.ltv = accountData.ltv;
+      // Convert query params to numbers
+      const pageNumber = Number(page);
+      const limitNumber = Number(limit);
 
-      return AppDataSource.manager.save(account);
-    } catch (err) {
-      console.log("error creating account in create() in AccoutService: ", err);
-    }
-  }
+      // Validate inputs
+      if (
+        isNaN(pageNumber) ||
+        isNaN(limitNumber) ||
+        pageNumber < 1 ||
+        limitNumber < 1
+      ) {
+        throw new BadRequestError("Invalid page or limit values.");
+      }
 
-  public async get(userAddress: string) {
-    try {
-      return AppDataSource.getRepository(Accounts).findOneBy({
-        wallet_address: userAddress,
-      });
+      return this.accountRepo.getAll(pageNumber, limitNumber);
     } catch (err) {
-      console.log("error creating account in create() in AccoutService: ", err);
+      if (err instanceof BadRequestError) {
+        throw err;
+      }
+
+      console.log("error in getAccounts() accounts service: ", err);
+      throw new Error("something went wrong");
     }
   }
 }
 
-export default AccoutService;
+export default AccountService;

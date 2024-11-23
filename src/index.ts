@@ -15,8 +15,11 @@ const start = async () => {
     app.get("/health", (req: any, res: any) => {
       res.status(200).send("Backend is up and running!!");
     });
+    const { getAccounts } = require("./controller/accountController");
+    app.get("/account", getAccounts);
+
     await app.listen(3000);
-    require("./eventListeners");
+    require("./eventListener/eventListeners");
     console.info("[EVENT] - Event listening started. 🚀");
   } catch (err: any) {
     console.log("failed to start server! An error happened: ", err.message);
