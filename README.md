@@ -2,6 +2,14 @@
 
 An Indexer for aUSDC Aave Contract to Monitor Liquidation Parameters
 
+## Prerequisites
+
+Before getting started, ensure you have the following installed:
+
+- **Node.js**: Version **v21.7.1**
+- **npm**: Version **10.8.3**
+- **PostgreSQL**: A running PostgreSQL instance for database setup
+
 ## Installation
 
 Clone the repo:
